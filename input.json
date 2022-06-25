@@ -1,0 +1,217 @@
+{
+    "results":
+    [
+        {
+            "created": "2021-10-05T14:30:06Z",
+            "enabled": true,
+            "alertName": "HighHttpErrorRate",
+            "id": "8k4s8vzog7jexqvtcqb78wdz",
+            "metricThreshold":
+            {
+                "metricName": "http_backend_500x_errors",
+                "operator": "greater_than",
+                "threshold": 5,
+                "units": "percent"
+            },
+            "notifications":
+            [
+                {
+                    "notificationType": "slack",
+                    "notificationChannel": "production_room",
+                    "delayMin": 0,
+                    "intervalMin": 5
+                },
+                {
+                    "notificationType": "pagerduty",
+                    "notificationSchedule": "on_call",
+                    "delayMin": 0,
+                    "intervalMin": 5
+                }
+            ],
+            "updated": "2021-10-05T14:30:08Z"
+        },
+        {
+            "created": "2021-12-06T15:11:07Z",
+            "enabled": true,
+            "alertName": "ElasticsearchClusterUnstable",
+            "id": "vt91wbtue86prc4wigkyftvf",
+            "metricThreshold":
+            {
+                "metricName": "elasticsearch_number_of_failing_shards",
+                "operator": "greater_than",
+                "threshold": 1,
+                "units": "unit"
+            },
+            "notifications":
+            [
+                {
+                    "notificationType": "slack",
+                    "notificationChannel": "production_room",
+                    "delayMin": 10,
+                    "intervalMin": 1440
+                }
+            ],
+            "updated": "2021-12-06T15:11:07Z"
+        },
+        {
+            "created": "2022-01-07T22:15:00Z",
+            "enabled": true,
+            "alertName": "DatabaseHasNoPrimary",
+            "id": "a8d5oubixse8dpdb4swog8bf",
+            "metricThreshold":
+            {
+                "metricName": "database_primary_number",
+                "operator": "less_than",
+                "threshold": 1,
+                "units": "unit"
+            },
+            "notifications":
+            [
+                {
+                    "notificationType": "slack",
+                    "notificationChannel": "production_room",
+                    "delayMin": 0,
+                    "intervalMin": 5
+                }
+            ],
+            "updated": "2022-01-07T22:20:00Z"
+        },
+        {
+            "created": "2022-07-14T14:28:05Z",
+            "enabled": true,
+            "alertName": "DeploymentFailsTooOften",
+            "id": "b1abuxqwld359txr36uz0axm",
+            "metricThreshold":
+            {
+                "metricName": "number_of_failing_deployments",
+                "operator": "greater_than",
+                "threshold": 3,
+                "units": "unit"
+            },
+            "notifications":
+            [
+                {
+                    "notificationType": "slack",
+                    "notificationChannel": "staging_room",
+                    "delayMin": 0,
+                    "intervalMin": 5
+                }
+            ],
+            "updated": "2022-07-14T14:28:05Z"
+        },
+        {
+            "created": "2021-01-04T11:04:00Z",
+            "enabled": true,
+            "alertName": "KubernetesServiceDown",
+            "id": "l2joeuwtjcb7gwt5s5mriazm",
+            "metricThreshold":
+            {
+                "metricName": "kubernetes_application_ready_pods_number",
+                "operator": "equal",
+                "threshold": 0,
+                "units": "unit"
+            },
+            "notifications":
+            [
+                {
+                    "notificationType": "pagerduty",
+                    "notificationSchedule": "on_call",
+                    "delayMin": 0,
+                    "intervalMin": 10
+                }
+            ],
+            "updated": "2021-01-04T11:04:00Z"
+        },
+        {
+            "created": "2022-01-05T04:15:06Z",
+            "enabled": true,
+            "alertName": "JVMHeapTooHigh",
+            "id": "dzfxs2j6ep3wpb0i3vnei0x2",
+            "metricThreshold":
+            {
+                "metricName": "application_jvm_memory_used",
+                "operator": "greater_than",
+                "threshold": 70,
+                "units": "percent"
+            },
+            "notifications":
+            [
+                {
+                    "notificationType": "pagerduty",
+                    "notificationSchedule": "on_call",
+                    "delayMin": 0,
+                    "intervalMin": 10
+                }
+            ],
+            "updated": "2022-01-05T04:15:10Z"
+        },
+        {
+            "created": "2021-08-15T10:10:04Z",
+            "enabled": true,
+            "alertName": "DatabaseHighReads",
+            "id": "dzfxs2j6ep3wpb0i3vnei0x2",
+            "metricThreshold":
+            {
+                "metricName": "database_data_disk_read_ratio",
+                "operator": "greater_than",
+                "threshold": 90,
+                "units": "percent"
+            },
+            "notifications":
+            [
+                {
+                    "notificationType": "slack",
+                    "notificationChannel": "staging_room",
+                    "delayMin": 10,
+                    "intervalMin": 60
+                }
+            ],
+            "updated": "2021-08-15T10:10:04Z"
+        },
+        {
+            "created": "2021-10-06T16:40:45Z",
+            "enabled": true,
+            "alertName": "DatabaseHighDiskUsage",
+            "id": "7piguh04erloe5h0i23lo2te",
+            "metricThreshold":
+            {
+                "metricName": "database_data_disk_used_space",
+                "operator": "greater_than",
+                "threshold": 90,
+                "units": "percent"
+            },
+            "notifications":
+            [
+                {
+                    "notificationType": "pagerduty",
+                    "notificationSchedule": "on_call",
+                    "delayMin": 5,
+                    "intervalMin": 60
+                }
+            ],
+            "updated": "2021-10-06T16:40:45Z"
+        },
+        {
+            "created": "2021-11-03T17:40:12Z",
+            "enabled": true,
+            "alertName": "KubernetesApplicationUnhealthy",
+            "id": "7piguh04erloe5h0i23lo2te",
+            "metricThreshold":
+            {
+                "metricName": "kubernetes_ready_pods_ratio",
+                "operator": "less_than",
+                "threshold": 60,
+                "units": "percent"
+            },
+            "notifications":
+            [
+                {
+                    "notificationType": "slack",
+                    "notificationChannel": "production_room",
+                    "delayMin": 5,
+                    "intervalMin": 60
+                }
+            ],
+            "updated": "2021-11-03T18:40:12Z"}
+    ]
+}

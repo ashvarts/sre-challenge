@@ -1,0 +1,157 @@
+alerts:
+  - alertName: HighHttpErrorRate
+    enabled: true
+    metricThreshold:
+      metricName: http_backend_500x_errors
+      operator: greater_than
+      threshold: 3
+      units: percent
+    notifications:
+      - notificationType: slack
+        notificationChannel: production_room
+        delayMin: 5
+        intervalMin: 10
+      - notificationType: pagerduty
+        notificationSchedule: on_call
+        delayMin: 5
+        intervalMin: 10
+  - alertName: HighApplicationLatency
+    enabled: true
+    metricThreshold:
+      metricName: http_backend_latency_seconds
+      operator: greater_than
+      threshold: 3
+      units: second
+    notifications:
+      - notificationType: slack
+        notificationChannel: production_room
+        delayMin: 0
+        intervalMin: 5
+      - notificationType: pagerduty
+        notificationSchedule: on_call
+        delayMin: 5
+        intervalMin: 10
+  - alertName: ElasticsearchClusterUnstable
+    enabled: true
+    metricThreshold:
+      metricName: elasticsearch_number_of_failing_shards
+      operator: greater_than
+      threshold: 1
+      units: unit
+    notifications:
+      - notificationType: slack
+        notificationChannel: production_room
+        delayMin: 10
+        intervalMin: 1440
+  - alertName: JVMHeapTooHigh
+    enabled: true
+    metricThreshold:
+      metricName: application_jvm_memory_used
+      operator: greater_than
+      threshold: 80
+      units: percent
+    notifications:
+      - notificationType: slack
+        notificationChannel: production_room
+        delayMin: 10
+        intervalMin: 60
+  - alertName: DatabaseHasNoPrimary
+    enabled: true
+    metricThreshold:
+      metricName: database_primary_number
+      operator: less_than
+      threshold: 1
+      units: unit
+    notifications:
+      - notificationType: pagerduty
+        notificationSchedule: on_call
+        delayMin: 0
+        intervalMin: 5
+  - alertName: DatabaseHighIO
+    enabled: true
+    metricThreshold:
+      metricName: database_data_disk_iops
+      operator: greater_than
+      threshold: 10000
+      units: unit
+    notifications:
+      - notificationType: slack
+        notificationChannel: production_room
+        delayMin: 10
+        intervalMin: 60
+  - alertName: DatabaseHighDiskUsage
+    enabled: true
+    metricThreshold:
+      metricName: database_data_disk_used_space
+      operator: greater_than
+      threshold: 90
+      units: percent
+    notifications:
+      - notificationType: pagerduty
+        notificationSchedule: on_call
+        delayMin: 5
+        intervalMin: 60
+  - alertName: DatabaseBackupTooOld
+    enabled: true
+    metricThreshold:
+      metricName: database_last_successful_backup
+      operator: greater_than
+      threshold: 12
+      units: hours
+    notifications:
+      - notificationType: slack
+        notificationChannel: production_room
+        delayMin: 0
+        intervalMin: 60
+  - alertName: DeploymentFailsTooOften
+    enabled: false
+    metricThreshold:
+      metricName: number_of_failing_deployments
+      operator: greater_than
+      threshold: 5
+      units: unit
+    notifications:
+      - notificationType: slack
+        notificationChannel: staging_room
+        delayMin: 0
+        intervalMin: 5
+  - alertName: QueueProcessingTimeHigh
+    enabled: true
+    metricThreshold:
+      metricName: average_message_time_in_the_queue
+      operator: greater_than
+      threshold: 5
+      units: min
+    notifications:
+      - notificationType: slack
+        notificationChannel: production_room
+        delayMin: 0
+        intervalMin: 5
+      - notificationType: pagerduty
+        notificationSchedule: on_call
+        delayMin: 30
+        intervalMin: 60
+  - alertName: PrometheusTooManyTargets
+    enabled: true
+    metricThreshold:
+      metricName: prometheus_scraped_targets_number
+      operator: greater_than
+      threshold: 50000
+      units: unit
+    notifications:
+      - notificationType: slack
+        notificationChannel: production_room
+        delayMin: 0
+        intervalMin: 5
+  - alertName: KubernetesServiceDown
+    enabled: true
+    metricThreshold:
+      metricName: kubernetes_application_ready_pods_number
+      operator: equal
+      threshold: 0
+      units: unit
+    notifications:
+      - notificationType: pagerduty
+        notificationSchedule: on_call
+        delayMin: 0
+        intervalMin: 10
