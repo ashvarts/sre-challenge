@@ -1,24 +1,82 @@
 package main
 
 import (
+	"encoding/json"
+	"flag"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"math/rand"
+	"os"
+	"reflect"
 	"time"
+
+	"gopkg.in/yaml.v2"
 )
 
-// for random alertId generation
+const IDLENGTH int = 24
+
+var charList = []rune("abcdefghijklmnopqrstuvwxyz0123456789")
+
 func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-var charList = []rune("abcdefghijklmnopqrstuvwxyz0123456789")
-
-const IDLENGTH int = 24
-
 func main() {
-	fmt.Println("Hello, world.")
+	var desiredConfig DesiredAlertsConfig
+	var currentConfig CurrentAlertsConfig
+
+	currentConfigFilePath := flag.String("current-config", "", "required: the path to the current config file (json api result)")
+	desiredConfigFilePath := flag.String("desired-config", "", "required: the path to the desired config file (yaml configuration)")
+	flag.Parse()
+
+	if (*currentConfigFilePath == "") || (*desiredConfigFilePath == "") {
+		flag.PrintDefaults()
+		os.Exit(0)
+	}
+
+	currentConfigFile, err := ioutil.ReadFile(*currentConfigFilePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = json.Unmarshal(currentConfigFile, &currentConfig)
+	if err != nil {
+		log.Fatal("something went wrong reading current-config (json)", err)
+	}
+
+	desiredConfigFile, err := ioutil.ReadFile(*desiredConfigFilePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = yaml.Unmarshal(desiredConfigFile, &desiredConfig)
+	if err != nil {
+		log.Fatal("something went wrong reading desired-config (yaml)", err)
+	}
+
+	reconcileActions := Reconcile(desiredConfig, currentConfig)
+	actions, err := json.MarshalIndent(reconcileActions.Actions, "", " ")
+	if err != nil {
+		log.Fatal("something went wrong printing reconcile plan", err)
+	}
+	summary := Summary(reconcileActions)
+
+	fmt.Printf("%s\n", actions)
+	fmt.Printf("Summary: {Created:%d,Deleted:%d,Updated:%d}\n", summary[CREATE], summary[DELETE], summary[UPDATE])
+
 }
 
+func Summary(actions ReconcileActions) map[Action]int { //TODO: Test
+	summary := make(map[Action]int)
+	for _, action := range actions.Actions {
+		summary[action.Action]++
+	}
+	return summary
+}
+
+// Reconcile takes a desired and current configuration and returns a list of actions needed
+// to match the current configuration to the desired configuration.
 func Reconcile(desired DesiredAlertsConfig, current CurrentAlertsConfig) ReconcileActions {
 	reconcileActions := ReconcileActions{}
 
@@ -38,14 +96,49 @@ func Reconcile(desired DesiredAlertsConfig, current CurrentAlertsConfig) Reconci
 	desiredAlertsByName := ConfigByAlertName(desiredAlerts)
 	currentAlertsByName := ResultsByAlertName(currentAlerts)
 
-	missingAlerts := createMissingAlerts(desiredAlertsByName, currentAlertsByName)
+	missingAlerts := createActionsForMissingAlerts(desiredAlertsByName, currentAlertsByName)
+	if len(missingAlerts) > 0 {
+		reconcileActions.Actions = append(reconcileActions.Actions, missingAlerts...)
+	}
 
-	reconcileActions.Actions = append(reconcileActions.Actions, missingAlerts...)
+	changedAlerts := createActionsForUpdatedAlerts(desiredAlertsByName, currentAlertsByName)
+	if len(changedAlerts) > 0 {
+		reconcileActions.Actions = append(reconcileActions.Actions, changedAlerts...)
+	}
 
+	deletedAlerts := createActionsForDeletedAlerts(desiredAlertsByName, currentAlertsByName)
+	if len(deletedAlerts) > 0 {
+		reconcileActions.Actions = append(reconcileActions.Actions, deletedAlerts...)
+	}
+	return reconcileActions
+}
+func createActionsForDeletedAlerts(desiredAlertsByName map[string]Alert, currentAlertsByName map[string]ApiResult) []ReconcileAction {
+	var reconcileActions []ReconcileAction
+	for alertName, currentAlert := range currentAlertsByName {
+		if _, ok := desiredAlertsByName[alertName]; !ok {
+			alertID := currentAlert.ID
+			action := CreateReconcileAction(alertID, DELETE, currentAlert.Alert)
+			reconcileActions = append(reconcileActions, action)
+		}
+	}
 	return reconcileActions
 }
 
-func createMissingAlerts(desiredAlertsByName map[string]Alert, currentAlertsByName map[string]ApiResult) []ReconcileAction {
+func createActionsForUpdatedAlerts(desiredAlertsByName map[string]Alert, currentAlertsByName map[string]ApiResult) []ReconcileAction {
+	var reconcileActions []ReconcileAction
+	for alertName, desiredAlert := range desiredAlertsByName {
+		if currentAlert, ok := currentAlertsByName[alertName]; ok {
+			if !reflect.DeepEqual(currentAlert.Alert, desiredAlert) {
+				alertID := currentAlert.ID
+				action := CreateReconcileAction(alertID, UPDATE, desiredAlert)
+				reconcileActions = append(reconcileActions, action)
+			}
+		}
+	}
+	return reconcileActions
+}
+
+func createActionsForMissingAlerts(desiredAlertsByName map[string]Alert, currentAlertsByName map[string]ApiResult) []ReconcileAction {
 	var reconcileActions []ReconcileAction
 	for alertName, alert := range desiredAlertsByName {
 		if _, ok := currentAlertsByName[alertName]; !ok {

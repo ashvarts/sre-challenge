@@ -109,7 +109,7 @@ func TestReconcile(t *testing.T) {
 
 	})
 
-	t.Run("Reconcile should not create 'create' actions if current config already exists", func(t *testing.T) {
+	t.Run("Reconcile should only create 'create' actions if current config doesn't exists", func(t *testing.T) {
 		desiredAlerts := DesiredAlertsConfig{
 			Alerts: []Alert{
 				testAlert0,
@@ -125,7 +125,6 @@ func TestReconcile(t *testing.T) {
 			})
 
 		reconcileActions := Reconcile(desiredAlerts, currentConfig)
-
 		if len(reconcileActions.Actions) != 2 {
 			t.Errorf("reconcile actions count should be: %d, got: %d", 2, len(reconcileActions.Actions))
 		}
@@ -138,14 +137,82 @@ func TestReconcile(t *testing.T) {
 				t.Errorf("action should be 'create', got: %s", action.Action)
 			}
 		}
+		assertAlertDefinitionMatchesResultBody(t, reconcileActions, []Alert{testAlert2, testAlert3})
 
-		assertAlertsMatch(t, reconcileActions, []Alert{testAlert2, testAlert3})
+	})
+
+	t.Run("Reconcile should create 'update' action for changed ", func(t *testing.T) {
+		currentConfig := newCurrentAlertsConfig(
+			[]Alert{
+				testAlert0,
+				testAlert1,
+			})
+
+		testAlert0.MetricThreshold.Operator = "updated_operator"
+		desiredAlerts := DesiredAlertsConfig{
+			Alerts: []Alert{
+				testAlert0,
+				testAlert1,
+			},
+		}
+
+		reconcileActions := Reconcile(desiredAlerts, currentConfig)
+
+		if len(reconcileActions.Actions) != 1 {
+			t.Errorf("reconcile actions count should be: %d, got: %d", 1, len(reconcileActions.Actions))
+		}
+
+		for _, action := range reconcileActions.Actions {
+			if action.AlertID != currentConfig.Results[0].ID {
+				t.Errorf("reconcile action alert ID should match id in result. want: %s, got: %s", currentConfig.Results[0].ID, action.AlertID)
+			}
+			if action.Action != UPDATE {
+				t.Errorf("action should be 'create', got: %s", action.Action)
+			}
+		}
+
+		assertAlertDefinitionMatchesResultBody(t, reconcileActions, []Alert{testAlert0})
+
+	})
+
+	t.Run("Reconcile should create 'delete' action for removed desired alert", func(t *testing.T) {
+		idxOfRemovedAlert := 1
+		currentConfig := newCurrentAlertsConfig(
+			[]Alert{
+				testAlert0,
+				testAlert1,
+				testAlert2,
+			})
+
+		desiredAlerts := DesiredAlertsConfig{
+			Alerts: []Alert{
+				testAlert0,
+				testAlert2,
+			},
+		}
+
+		reconcileActions := Reconcile(desiredAlerts, currentConfig)
+
+		if len(reconcileActions.Actions) != 1 {
+			t.Errorf("reconcile actions count should be: %d, got: %d", 1, len(reconcileActions.Actions))
+		}
+
+		for _, action := range reconcileActions.Actions {
+			if action.AlertID != currentConfig.Results[idxOfRemovedAlert].ID {
+				t.Errorf("reconcile action alert ID should match id in result. want: %s, got: %s", currentConfig.Results[idxOfRemovedAlert].ID, action.AlertID)
+			}
+			if action.Action != DELETE {
+				t.Errorf("action should be 'create', got: %s", action.Action)
+			}
+		}
+
+		assertAlertDefinitionMatchesResultBody(t, reconcileActions, []Alert{currentConfig.Results[idxOfRemovedAlert].Alert})
 
 	})
 
 }
 
-func assertAlertsMatch(t *testing.T, reconcileActions ReconcileActions, alerts []Alert) {
+func assertAlertDefinitionMatchesResultBody(t *testing.T, reconcileActions ReconcileActions, alerts []Alert) {
 	var reconcileAlertBodies []Alert
 	for _, v := range reconcileActions.Actions {
 		reconcileAlertBodies = append(reconcileAlertBodies, v.Body)
