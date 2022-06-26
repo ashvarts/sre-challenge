@@ -30,7 +30,7 @@ Tests are included in main_test.go. To run the test clone this repo, and run: `g
 ## Question
 > Providing that the external API may be unreliable and the alert configurations can be changed by sneaky SREs manually, how would you design such an application to ensure there’s no accumulated drift between the real alerts and the desired alerts configuration?
 
-A simple solution would involve running this applicaiton periodically, either in a loop with a sensible sleep setting or with a cron job. However, this could result in a delay between a change in configuration and application. A more sophisticated solution could also add a trigger/webhook that would fire when a new configuration is submitted and would trigger the application for immediate reconciliation. 
+A simple solution would involve running this applicaiton periodically, either in a loop with a sensible sleep setting or with a cron job. However, this could result in a delay between a change in configuration and when it is applied. A more sophisticated solution is to add a trigger/webhook that would fire when a new configuration is submitted or the external API changes and would trigger the reconciliation immediately. 
 
 ## Todo 
 - [ ] Refactor tests
