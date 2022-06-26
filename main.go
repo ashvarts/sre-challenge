@@ -58,7 +58,7 @@ func main() {
 	reconcileActions := Reconcile(desiredConfig, currentConfig)
 	actions, err := json.MarshalIndent(reconcileActions.Actions, "", " ")
 	if err != nil {
-		log.Fatal("something went wrong printing reconcile plan", err)
+		log.Fatal("something went wrong with generating reconcile plan", err)
 	}
 	summary := Summary(reconcileActions)
 
